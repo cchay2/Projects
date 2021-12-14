@@ -115,7 +115,9 @@ while True:
                         player.hotbar[i]["half"] = False
                         break
             
-            if player.hotbar[i] != 0:
+            
+            #if player.hotbar[i] != 0:
+            if hotbar_rect.collidepoint( mouse_pos ):
                 slotIndex = player.findEmptyHotbarSlot( mouse_pos )
                 if player.hotbar[slotIndex] == player.hotbar[i]:
                     pass
@@ -139,7 +141,7 @@ while True:
                                 player.hotbar[slotIndex]["count"] = 64
                                 player.hotbar[i]["count"] = remainder
                                 
-                            else:   
+                            else:
                                 player.hotbar[slotIndex]["count"] += player.hotbar[i]["count"]
                                 player.hotbar[i] = 0
                     else:
