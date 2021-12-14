@@ -11,7 +11,7 @@ GAME IS IN ALPHA!!!
 
 
 --v.0.3.3
-+Temp Bug Fix for NYI throw out of inventory mechanism
++ Temp Bug Fix for NYI throw out of inventory mechanism
 
 --v.0.3.2
 +Right click Drag and Drop (Half stack)
