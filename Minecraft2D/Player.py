@@ -37,6 +37,11 @@ class Player():
         self.hotbar_index = 0
         self.hotbar = [0, 0, 0, 0, 0, 0, 0, 0] # 8 slots
         
+        self.dragging = False
+        
+        for i in range( 24 ):
+            self.hotbar.append( 0 )
+        
     
     def adjustPos( self ):
         """ Snap the player to the nearest y Coord multiple of 50 when landing """
@@ -96,7 +101,7 @@ class Player():
         if self.is_jumping:
             if self.checkCeiling( chunk ) == False:
                 self.y -= self.jump_increment
-                if self.y+self.scroll[1] < 100:
+                if self.y+self.scroll[1] < 150:
                     self.scrolling_up = True
                     self.scroll[1] += self.gravity
             else:
@@ -139,14 +144,14 @@ class Player():
     
     def scrollUp( self ):
         if self.scrolling_up:
-            if self.y+self.scroll[1] < 150:
+            if self.y+self.scroll[1] < 200:
                 self.scroll[1] += self.velocity
             else:
                 self.scrolling_up = False
     
     def scrollDown( self ):
         if self.scrolling_down:
-            if self.y+self.scroll[1] > 550-self.height:
+            if self.y+self.scroll[1] > 600-self.height:
                 self.scroll[1] -= self.velocity
             else:
                 self.scrolling_down = False
@@ -206,7 +211,7 @@ class Player():
 
     
     def collectBlockHotBar( self, block ):
-        for i in range(8): 
+        for i in range( len(self.hotbar) ): 
             ## First check to see if a block already exists in hotbar
             if self.hotbar[i] != 0:
                 if self.hotbar[i]["id"] == block.getID(): # Block exists
@@ -214,17 +219,29 @@ class Player():
                         self.hotbar[i]["count"] += 1
                         return
         
-        for i in range(8): # look for a new slot
+        for i in range( len(self.hotbar) ): # look for a new slot
             if self.hotbar[i] == 0: ## Empty slot to place a block
                 self.hotbar[i] = {
                     "id": block.getID(),
                     "name": block.getName(),
                     "img": block.getImage(),
                     "color": block.getColor(),
-                    "count": 1
+                    "rect": pygame.Rect( 205+50*i, 535, 40, 40 ),
+                    "x" : 205+50*i,
+                    "y": 535,
+                    "drag": False,
+                    "half": False,
+                    "count": 1,
+                    "half count": 0
                 }
                 break
-        
+    
+    
+    def findEmptyHotbarSlot( self, mouse_pos ):
+        """ Will return int of range 8 to indicate which position to swap the block to """
+        for i in range(8):
+            if mouse_pos[0] >= 200+50*i and mouse_pos[0] <= 200+50*(i+1) and mouse_pos[1] >= 530 and mouse_pos[1] <= 580:
+                return i
         
             
                 
