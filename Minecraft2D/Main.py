@@ -98,7 +98,7 @@ while True:
                         #print("Right Click")
                         player.hotbar[slotIndex]["drag"] = True
                         player.hotbar[slotIndex]["half"] = True
-                        if player.hotbar[slotIndex]["half count"] == 1:
+                        if player.hotbar[slotIndex]["count"] == 1:
                             player.hotbar[slotIndex]["half count"] = 1
                         else:
                             player.hotbar[slotIndex]["half count"] = player.hotbar[slotIndex]["count"]//2
@@ -288,11 +288,16 @@ while True:
                 player.hotbar[slot] = 0
             else: ## Display Blocks
                 if player.hotbar[slot]["half"] == True: # Player is dragging with right mouse:
-                    SCREEN.blit( player.hotbar[slot]["img"], ( 205+50*slot, 535 ) )
-                    SCREEN.blit( item_count_font.render( str(player.hotbar[slot]["count"]-player.hotbar[slot]["half count"]), False, constant.WHITE ), ( 230+50*slot, 560 ) )
+                    if player.hotbar[slot]["count"] > 1:
+                        SCREEN.blit( player.hotbar[slot]["img"], ( 205+50*slot, 535 ) )
+                        SCREEN.blit( item_count_font.render( str(player.hotbar[slot]["count"]-player.hotbar[slot]["half count"]), False, constant.WHITE ), ( 230+50*slot, 560 ) )
 
-                    SCREEN.blit( player.hotbar[slot]["img"], ( mouse_pos[0], mouse_pos[1] ) )
-                    SCREEN.blit( item_count_font.render( str(player.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0]+30, mouse_pos[1]+25 ) )
+                        SCREEN.blit( player.hotbar[slot]["img"], ( mouse_pos[0], mouse_pos[1] ) )
+                        SCREEN.blit( item_count_font.render( str(player.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0]+30, mouse_pos[1]+25 ) )
+                    
+                    else:
+                        SCREEN.blit( player.hotbar[slot]["img"], ( mouse_pos[0], mouse_pos[1] ) )
+                        SCREEN.blit( item_count_font.render( str(player.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0]+30, mouse_pos[1]+25 ) )
                 
                 elif player.hotbar[slot]["drag"] == False: # Block is not being dragged so draw underfirst so it is underneath                  
                     SCREEN.blit( player.hotbar[slot]["img"], ( 205+50*slot, 535 ) )
