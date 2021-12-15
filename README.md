@@ -10,6 +10,9 @@ GAME IS IN ALPHA!!!
 # Changelog
 
 
+## v.0.4
++ Added Inventory System
+
 ## v.0.3.3
 + Temp Bug Fix for NYI throw out of inventory mechanism
 
