@@ -21,9 +21,11 @@ WORLD_LIMIT_Y = ( SURFACE_HEIGHT, SURFACE_HEIGHT + 50*50 ) # 50 blocks down
 SCREEN = pygame.display.set_mode( (SCREEN_WIDTH, SCREEN_HEIGHT) )
 
 
-GRASS_BLOCK = pygame.image.load( "graphics/blocks/grass_2.png" ).convert_alpha()
-DIRT_BLOCK = pygame.image.load( "graphics/blocks/dirt_2.png" ).convert_alpha()
-STONE_BLOCK = pygame.image.load( "graphics/blocks/stone_2.png" ).convert_alpha()
+GRASS_BLOCK = pygame.image.load( "graphics/blocks/grass.png" ).convert_alpha()
+DIRT_BLOCK = pygame.image.load( "graphics/blocks/dirt.png" ).convert_alpha()
+STONE_BLOCK = pygame.image.load( "graphics/blocks/stone.png" ).convert_alpha()
+
+ARROW = pygame.image.load( "graphics/other/crafting_arrow.png" ).convert_alpha()
 
 window = {
     "x": [ 0, SCREEN_WIDTH ],
@@ -67,9 +69,6 @@ place_cd = False
 ## Set Player Chunk
 player.checkSetChunk( CHUNK_LIST )
 
-hotbar_rect = pygame.Rect( 200, 530, 400, 50 )
-
-
 while True:
     mouse_pos = pygame.mouse.get_pos()
     keys = pygame.key.get_pressed()
@@ -83,13 +82,13 @@ while True:
             
         ## DRAG AND DROP EVENT         
                     
-        if hotbar_rect.collidepoint( mouse_pos ):
-            #print( mouse_pos )
+        if player.hotbar_rect.collidepoint( mouse_pos ) or (player.inventory_rect.collidepoint( mouse_pos ) and player.show_inventory == True):
             
             if player.dragging == False and event.type == pygame.MOUSEBUTTONDOWN: ## DRAGGING
                 player.dragging = True
                 
                 slotIndex = player.findEmptyHotbarSlot( mouse_pos )
+                
                 if player.hotbar[ slotIndex ] != 0:
                     if event.button == 1: # left click
                         #print("Left Click")
@@ -108,7 +107,7 @@ while True:
             #print( "drop" )
             player.dragging = False
             
-            for i in range(8):
+            for i in range( len( player.hotbar ) ):
                 if player.hotbar[i] != 0:
                     if player.hotbar[i]["drag"] == True: # We found the block
                         player.hotbar[i]["drag"] = False
@@ -117,37 +116,36 @@ while True:
             
             
             #if player.hotbar[i] != 0:
-            if hotbar_rect.collidepoint( mouse_pos ):
-                slotIndex = player.findEmptyHotbarSlot( mouse_pos )
-                if player.hotbar[slotIndex] == player.hotbar[i]:
-                    pass
+            if player.hotbar_rect.collidepoint( mouse_pos ) or player.inventory_rect.collidepoint( mouse_pos ):
                 
-                elif player.hotbar[slotIndex] != 0: # Existing block at position slotIndex
-                    if player.hotbar[slotIndex]["id"] == player.hotbar[i]["id"]: #combine the stack
-                        #print("matching block")
-                        if player.hotbar[i]["half count"] > 0:
-                            if player.hotbar[slotIndex]["count"] + player.hotbar[i]["half count"] > 64:
-                                remainder = player.hotbar[i]["half count"] + player.hotbar[slotIndex]["count"] - 64
-                                player.hotbar[slotIndex]["count"] = 64
-                                player.hotbar[i]["count"] += ( remainder - player.hotbar[i]["half count"] )
-                                player.hotbar[i]["half count"] = 0
-                            else: # adding blocks to a stack less than full
-                                player.hotbar[slotIndex]["count"] += player.hotbar[i]["half count"]
-                                player.hotbar[i]["count"] -= player.hotbar[i]["half count"]
-                                player.hotbar[i]["half count"] = 0
-                        else:    
-                            if player.hotbar[slotIndex]["count"] + player.hotbar[i]["count"] >= 64:
-                                remainder = player.hotbar[i]["count"] + player.hotbar[slotIndex]["count"] - 64
-                                player.hotbar[slotIndex]["count"] = 64
-                                player.hotbar[i]["count"] = remainder
-                                
+                slotIndex = player.findEmptyHotbarSlot( mouse_pos )
+                
+                if player.hotbar[slotIndex] != 0: # Existing block at position slotIndex
+                    if slotIndex != i: #Make sure the id's are different
+                        if player.hotbar[slotIndex]["id"] == player.hotbar[i]["id"]: #combine the stack
+                            if player.hotbar[i]["half count"] > 0:
+                                if player.hotbar[slotIndex]["count"] + player.hotbar[i]["half count"] > 64:
+                                    remainder = player.hotbar[i]["half count"] + player.hotbar[slotIndex]["count"] - 64
+                                    player.hotbar[slotIndex]["count"] = 64
+                                    player.hotbar[i]["count"] += ( remainder - player.hotbar[i]["half count"] )
+                                    player.hotbar[i]["half count"] = 0
+                                else: # adding blocks to a stack less than full
+                                    player.hotbar[slotIndex]["count"] += player.hotbar[i]["half count"]
+                                    player.hotbar[i]["count"] -= player.hotbar[i]["half count"]
+                                    player.hotbar[i]["half count"] = 0
                             else:
-                                player.hotbar[slotIndex]["count"] += player.hotbar[i]["count"]
-                                player.hotbar[i] = 0
-                    else:
-                        target_block = player.hotbar[slotIndex]
-                        player.hotbar[slotIndex] = player.hotbar[i] # Move the dragged block to the new position
-                        player.hotbar[i] = target_block # Finish swapping the blocks
+                                if player.hotbar[slotIndex]["count"] + player.hotbar[i]["count"] >= 64:
+                                    remainder = player.hotbar[i]["count"] + player.hotbar[slotIndex]["count"] - 64
+                                    player.hotbar[slotIndex]["count"] = 64
+                                    player.hotbar[i]["count"] = remainder
+                                    
+                                else:
+                                    player.hotbar[slotIndex]["count"] += player.hotbar[i]["count"]
+                                    player.hotbar[i] = 0
+                        else:
+                            target_block = player.hotbar[slotIndex]
+                            player.hotbar[slotIndex] = player.hotbar[i] # Move the dragged block to the new position
+                            player.hotbar[i] = target_block # Finish swapping the blocks
                 else:
                     if player.hotbar[i]["half count"] > 0:
                         player.hotbar[slotIndex] = player.hotbar[i].copy() # Drag the block to the new spot
@@ -163,6 +161,12 @@ while True:
         
         
         if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_e:
+                if player.show_inventory == False:
+                    player.show_inventory = True
+                else:
+                    player.show_inventory = False
+            
             if event.key == pygame.K_SPACE or event.key == pygame.K_w:
                 player.broadcastJump( CHUNK_LIST[player.getChunkIndex()] )
             
@@ -187,27 +191,32 @@ while True:
             
         elif event.type == pygame.MOUSEWHEEL:
             player.hotbar_index -= event.y
-            if player.hotbar_index >= 8:
+            if player.hotbar_index >= player.hotbar_size:
                 player.hotbar_index = 0
             if player.hotbar_index <= -1:
-                player.hotbar_index = 7
+                player.hotbar_index = player.hotbar_size-1
         
         
         elif event.type == pygame.MOUSEBUTTONDOWN: ## Moved placing down last to fix the place bug
             if event.button == 3: # right click is replace block
-                if player.hotbar[player.hotbar_index] != 0: ## hot bar slot is actually a block
-                    if player.hotbar[player.hotbar_index]["count"] > 0:
-                        new_block = Block.Block( player.hotbar[player.hotbar_index]["id"], player.hotbar[player.hotbar_index]["name"], player.hotbar[player.hotbar_index]["color"], player.hotbar[player.hotbar_index]["img"], mouse_pos[0]-player.scroll[0], mouse_pos[1]-player.scroll[1] )
-                        new_block.adjustPosition()
-                        player.updateRect()
-                        if player.dragging == False:
-                            if not new_block.Rect.colliderect( player.Rect ):
-                                for i in CHUNK_LIST[player.getChunkIndex()].blocks:
-                                    if new_block.Rect.colliderect( i.Rect ):
-                                        break
-                                else:
-                                    CHUNK_LIST[player.getChunkIndex()].addBlock( new_block )
-                                    player.hotbar[player.hotbar_index]["count"] -= 1
+                if player.show_inventory == True and not player.inventory_rect.collidepoint( mouse_pos ) and not player.hotbar_rect.collidepoint( mouse_pos ):
+                    player.show_inventory = False
+                elif player.show_inventory == True:
+                    pass
+                else:
+                    if player.hotbar[player.hotbar_index] != 0: ## hot bar slot is actually a block
+                        if player.hotbar[player.hotbar_index]["count"] > 0:
+                            new_block = Block.Block( player.hotbar[player.hotbar_index]["id"], player.hotbar[player.hotbar_index]["name"], player.hotbar[player.hotbar_index]["color"], player.hotbar[player.hotbar_index]["img"], mouse_pos[0]-player.scroll[0], mouse_pos[1]-player.scroll[1] )
+                            new_block.adjustPosition()
+                            player.updateRect()
+                            if player.dragging == False:
+                                if not new_block.Rect.colliderect( player.Rect ):
+                                    for i in CHUNK_LIST[player.getChunkIndex()].blocks:
+                                        if new_block.Rect.colliderect( i.Rect ):
+                                            break
+                                    else:
+                                        CHUNK_LIST[player.getChunkIndex()].addBlock( new_block )
+                                        player.hotbar[player.hotbar_index]["count"] -= 1
     
     ## Player movement
     
@@ -237,22 +246,22 @@ while True:
     ## Log player action
     mouse_press = pygame.mouse.get_pressed()
     if mouse_press[0]: #left click is destroy block
-        if not hotbar_rect.collidepoint( mouse_pos ) and not player.dragging:
-            ## Change this later so player can only destroy blocks in range
-            for chunk in CHUNK_LIST:
-                if player.getCoords()[0] >= chunk.getStart() and player.getCoords()[0] <= chunk.getEnd(): ## Checking to see if player is in a chunk
-                    for block in chunk.blocks:
-                        if block.Rect.collidepoint( mouse_pos[0]-player.scroll[0], mouse_pos[1]-player.scroll[1] ):
-                            player.collectBlockHotBar( block )
-                            chunk.blocks.remove( block )
-                        
-    
-    #print( "Hotbar: ", player.hotbar )
+        if not player.hotbar_rect.collidepoint( mouse_pos ) and not player.dragging:
+            if player.show_inventory == True and not player.inventory_rect.collidepoint( mouse_pos ) and not player.hotbar_rect.collidepoint( mouse_pos ):
+                player.show_inventory = False
+            elif player.show_inventory == True:
+                    pass
+            else:
+                ## Change this later so player can only destroy blocks in range
+                for chunk in CHUNK_LIST:
+                    if player.getCoords()[0] >= chunk.getStart() and player.getCoords()[0] <= chunk.getEnd(): ## Checking to see if player is in a chunk
+                        for block in chunk.blocks:
+                            if block.Rect.collidepoint( mouse_pos[0]-player.scroll[0], mouse_pos[1]-player.scroll[1] ):
+                                player.collectBlockHotBar( block )
+                                chunk.blocks.remove( block )
                                             
     
     # 20,200 blocks drawn
-    #for chunk in CHUNK_LIST:
-        #if player.getCoords()[0] >= chunk.getStart() and player.getCoords()[0] <= chunk.getEnd(): ## Checking to see if player is in a chunk
     player.checkSetChunk( CHUNK_LIST )
     chunk = CHUNK_LIST[player.getChunkIndex()]
     window["x"][0] = 0 - player.scroll[0] ## window is used to draw and display blocks
@@ -266,60 +275,47 @@ while True:
         count += 1
     
     
+    ## Player Inventory
+    if player.show_inventory:
+        inventory = pygame.draw.rect( SCREEN, constant.STEEL_GREY, ( 125, 100, 550, 400 ) )
+        
+        for row in range( 3 ): ## Inventory
+            for column in range( player.hotbar_size ):
+                pygame.draw.rect( SCREEN, constant.WHITE, ( 175+50*(column), 350+50*(row), 50, 50 ), 5 )
+        
+        for i in range(4): ## Armor Slots
+            for column in range( player.hotbar_size ):
+                pygame.draw.rect( SCREEN, constant.WHITE, ( 175, 125+50*(i), 50, 50 ), 5 )
+        
+        pygame.draw.rect( SCREEN, constant.WHITE, ( 400, 125+50*(i), 50, 50 ), 5 ) # Off hand
+        
+        pygame.draw.rect( SCREEN, constant.BLACK, ( 225+15, 125, 150, 200 ) ) # Player Image
+        
+        ## Draw player crafting table
+        for i in range( 0, 2 ):
+            pygame.draw.rect( SCREEN, constant.WHITE, ( 150+50*(6+i), 160, 50, 50 ), 5 )
+        
+        for i in range( 3, 5 ):
+            pygame.draw.rect( SCREEN, constant.WHITE, ( 150+50*(6+i-3), 210, 50, 50 ), 5 )
+            
+        # Crafting arrow
+        SCREEN.blit( ARROW, ( 560, 190 ) )
+        
+        pygame.draw.rect( SCREEN, constant.WHITE, ( 610, 185, 50, 50 ), 5 )
+        
+    
     ## Player Hotbar
-    hotbar = pygame.draw.rect( SCREEN, constant.BLACK, ( 200, 530, 400, 50 ) )
+    hotbar = pygame.draw.rect( SCREEN, constant.BLACK, ( 175, 530, 450, 50 ) )
     
-    for i in range(8):
-        pygame.draw.rect( SCREEN, constant.STEEL_GREY, ( 200+50*(i), 530, 50, 50 ), 5 )
-    
-    #if "Grass Block" in player.hotbar:
-    #    if player.hotbar["Grass Block"] > 0:
-    #        SCREEN.blit( GRASS_BLOCK, ( 205, 535 ) )
-    #        SCREEN.blit( item_count_font.render( str(player.hotbar["Grass Block"]), False, constant.WHITE ), ( 230, 560 ) )
+    for i in range( player.hotbar_size ):
+        pygame.draw.rect( SCREEN, constant.STEEL_GREY, ( 175+50*(i), 530, 50, 50 ), 5 )
     
     
     # Draw Highlighted Cube
-    pygame.draw.rect( SCREEN, constant.WHITE, ( 200+50*(player.hotbar_index), 530, 50, 50 ), 5 )
-            
-    for slot in range( 8 ):
-        if player.hotbar[slot] != 0:
-            #print(player.hotbar[slot])
-            if player.hotbar[slot]["count"] == 0: ## Player has no more blocks left, set to 0 since last block was used
-                player.hotbar[slot] = 0
-            else: ## Display Blocks
-                if player.hotbar[slot]["half"] == True: # Player is dragging with right mouse:
-                    if player.hotbar[slot]["count"] > 1:
-                        SCREEN.blit( player.hotbar[slot]["img"], ( 205+50*slot, 535 ) )
-                        SCREEN.blit( item_count_font.render( str(player.hotbar[slot]["count"]-player.hotbar[slot]["half count"]), False, constant.WHITE ), ( 230+50*slot, 560 ) )
-
-                        SCREEN.blit( player.hotbar[slot]["img"], ( mouse_pos[0], mouse_pos[1] ) )
-                        SCREEN.blit( item_count_font.render( str(player.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0]+30, mouse_pos[1]+25 ) )
-                    
-                    else:
-                        SCREEN.blit( player.hotbar[slot]["img"], ( mouse_pos[0], mouse_pos[1] ) )
-                        SCREEN.blit( item_count_font.render( str(player.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0]+30, mouse_pos[1]+25 ) )
-                
-                elif player.hotbar[slot]["drag"] == False: # Block is not being dragged so draw underfirst so it is underneath                  
-                    SCREEN.blit( player.hotbar[slot]["img"], ( 205+50*slot, 535 ) )
-                    SCREEN.blit( item_count_font.render( str(player.hotbar[slot]["count"]), False, constant.WHITE ), ( 230+50*slot, 560 ) )
-                else:
-                    SCREEN.blit( player.hotbar[slot]["img"], ( mouse_pos[0], mouse_pos[1] ) )
-                    SCREEN.blit( item_count_font.render( str(player.hotbar[slot]["count"]), False, constant.WHITE ), ( mouse_pos[0]+30, mouse_pos[1]+25 ) )
-        else:
-            pass
-        
+    pygame.draw.rect( SCREEN, constant.WHITE, ( 175+50*( player.hotbar_index ), 530, 50, 50 ), 5 )
     
-        
+    player.drawInventory( SCREEN, mouse_pos )
     
-    
-    #96 blocks drawn
-    #for block in BLOCK_LIST:
-    #    block.draw( SCREEN, window, player.scroll )
-    #   if block.drawn:
-    #       count += 1
-    
-    
-    #print("Blocks drawn on SCREEN:", count)
     
     pygame.display.update()
     clock.tick( 60 )

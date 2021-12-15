@@ -29,18 +29,32 @@ class Player():
         self.dRect = pygame.Rect( self.x, self.y, self.width, self.height ) #Draw
         self.Rect = pygame.Rect( self.x, self.y, self.width, self.height ) #x, y, width, height
         
+        self.hotbar_rect = pygame.Rect( 175, 530, 450, 50 )
+        self.inventory_rect = pygame.Rect( 125, 100, 550, 400 )
+        
         self.scrolling_right = False
         self.scrolling_left = False
         self.scrolling_up = False
         self.scrolling_down = False
         
+        self.hotbar_size = 9
         self.hotbar_index = 0
-        self.hotbar = [0, 0, 0, 0, 0, 0, 0, 0] # 8 slots
+        self.hotbar = [] # 9 slots
+        self.inventory_slots = []
         
         self.dragging = False
         
-        for i in range( 24 ):
+        for i in range( self.hotbar_size*4 ):
             self.hotbar.append( 0 )
+        
+        for row in range( 3 ):
+            for column in range( 9 ):
+                self.inventory_slots.append( ( 175+50*(column), 350+50*(row) ) )
+            
+        
+        
+        self.show_inventory = False
+        self.craft_table = [0, 0, 0, 0]
         
     
     def adjustPos( self ):
@@ -226,8 +240,8 @@ class Player():
                     "name": block.getName(),
                     "img": block.getImage(),
                     "color": block.getColor(),
-                    "rect": pygame.Rect( 205+50*i, 535, 40, 40 ),
-                    "x" : 205+50*i,
+                    "rect": pygame.Rect( 180+50*i, 535, 40, 40 ),
+                    "x" : 180+50*i,
                     "y": 535,
                     "drag": False,
                     "half": False,
@@ -236,18 +250,84 @@ class Player():
                 }
                 break
     
+    def printHotbar( self ):
+        for i in self.hotbar:
+            print(i)
+        print()
+    
     
     def findEmptyHotbarSlot( self, mouse_pos ):
         """ Will return int of range 8 to indicate which position to swap the block to """
-        for i in range(8):
-            if mouse_pos[0] >= 200+50*i and mouse_pos[0] <= 200+50*(i+1) and mouse_pos[1] >= 530 and mouse_pos[1] <= 580:
+        for i in range( self.hotbar_size ):
+            if mouse_pos[0] >= 175+50*i and mouse_pos[0] <= 175+50*(i+1) and mouse_pos[1] >= 530 and mouse_pos[1] <= 580:
                 return i
+            
+        for i in self.inventory_slots:
+            if mouse_pos[0] >= i[0] and mouse_pos[0] <= i[0]+50 and mouse_pos[1] >= i[1] and mouse_pos[1] <= i[1]+50:
+                #self.printHotbar()
+                return self.inventory_slots.index( i )+9
         
-        print("break")
+        #print("break")
         return False
-        
-            
-                
-            
-                
     
+    
+    def drawInventory( self, surface, mouse_pos ):
+        for slot in range( self.hotbar_size ):
+            if self.hotbar[slot] != 0:
+                #print(player.hotbar[slot])
+                if self.hotbar[slot]["count"] == 0: ## Player has no more blocks left, set to 0 since last block was used
+                    self.hotbar[slot] = 0
+                else: ## DRAW HOTBAR BLOCKS
+                    x = 180
+                    if self.hotbar[slot]["half"] == True: # Player is dragging with right mouse:
+                        if self.hotbar[slot]["count"] > 1:
+                            surface.blit( self.hotbar[slot]["img"], ( x+50*slot, 535 ) )
+                            surface.blit( constant.FONT.render( str(self.hotbar[slot]["count"]-self.hotbar[slot]["half count"]), False, constant.WHITE ), ( x+25+50*slot, 560 ) )
+
+                            surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0], mouse_pos[1] ) )
+                            surface.blit( constant.FONT.render( str(self.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0]+30, mouse_pos[1]+25 ) )
+                        
+                        else:
+                            surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0], mouse_pos[1] ) )
+                            surface.blit( constant.FONT.render( str(self.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0]+30, mouse_pos[1]+25 ) )
+                    
+                    elif self.hotbar[slot]["drag"] == False: # Block is not being dragged so draw underfirst so it is underneath                  
+                        surface.blit( self.hotbar[slot]["img"], ( x+50*slot, 535 ) )
+                        surface.blit( constant.FONT.render( str(self.hotbar[slot]["count"]), False, constant.WHITE ), ( x+25+50*slot, 560 ) )
+                    else:
+                        surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0], mouse_pos[1] ) )
+                        surface.blit( constant.FONT.render( str(self.hotbar[slot]["count"]), False, constant.WHITE ), ( mouse_pos[0]+30, mouse_pos[1]+25 ) )
+        x = 180
+        y = 355
+        slot = 9
+        if self.show_inventory == True:
+            for row in range( 3 ): ## DRAW INVENTORY BLOCKS
+                for column in range( 9 ):
+                    #print("slot:", slot)
+                    if self.hotbar[slot] != 0:
+                        if self.hotbar[slot]["count"] == 0: ## Player has no more blocks left, set to 0 since last block was used
+                            self.hotbar[slot] = 0
+                        else: ## DRAW HOTBAR BLOCKS
+                            if self.hotbar[slot]["half"] == True: # Player is dragging with right mouse:
+                                if self.hotbar[slot]["count"] > 1:
+                                    surface.blit( self.hotbar[slot]["img"], ( x+50*column, y+50*row ) )
+                                    surface.blit( constant.FONT.render( str(self.hotbar[slot]["count"]-self.hotbar[slot]["half count"]), False, constant.WHITE ), ( x+50*column+25, y+50*row+25 ) )
+
+                                    surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0], mouse_pos[1] ) )
+                                    surface.blit( constant.FONT.render( str(self.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0]+30, mouse_pos[1]+25 ) )
+                                
+                                else:
+                                    surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0], mouse_pos[1] ) )
+                                    surface.blit( constant.FONT.render( str(self.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0]+30, mouse_pos[1]+25 ) )
+                            
+                            elif self.hotbar[slot]["drag"] == False: # Block is not being dragged so draw underfirst so it is underneath                  
+                                surface.blit( self.hotbar[slot]["img"], ( x+50*column, y+50*row ) )
+                                surface.blit( constant.FONT.render( str(self.hotbar[slot]["count"]), False, constant.WHITE ), ( x+50*column+25, y+50*row+25 ) )
+                            else:
+                                surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0], mouse_pos[1] ) )
+                                surface.blit( constant.FONT.render( str(self.hotbar[slot]["count"]), False, constant.WHITE ), ( mouse_pos[0]+30, mouse_pos[1]+25 ) )
+                    slot += 1            
+                        
+                    
+                        
+            

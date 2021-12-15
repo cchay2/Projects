@@ -1,3 +1,5 @@
+import pygame
+
 ##COLORS
 
 WHITE =         ( 255, 255, 255 )
@@ -11,3 +13,9 @@ STEEL_GREY =    ( 136, 139, 141 )
 STONE_GREY =    ( 145, 142, 133 )
 
 DIRT_BROWN =    ( 116, 102,  59 )
+
+
+
+## font
+pygame.init()
+FONT = pygame.font.SysFont( "Comic Sans MS", 15 )
