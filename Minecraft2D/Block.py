@@ -1,7 +1,7 @@
 import pygame, Constant
 
 class Block():
-    def __init__( self, id, name, color, image, x, y ):
+    def __init__( self, id, name, color, image, x, y, transparent=False ):
         self.id = id
         self.name = name
         self.color = color
@@ -13,6 +13,7 @@ class Block():
         self.height = 50
         
         self.drawn = False
+        self.transparent = transparent
         
         self.Rect = pygame.Rect( self.x, self.y, self.width, self.height )
     

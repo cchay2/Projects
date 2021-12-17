@@ -8,11 +8,13 @@ BLACK =         (   0,   0,   0 )
 SKY_BLUE =      ( 135, 206, 235 )
 
 GRASS_GREEN =   (   0, 154,  23 )
+LEAF_GREEN =    (  48, 183,   0 )
 
 STEEL_GREY =    ( 136, 139, 141 )
 STONE_GREY =    ( 145, 142, 133 )
 
 DIRT_BROWN =    ( 116, 102,  59 )
+WOOD_BROWN =    ( 164, 116,  73 )
 
 
 

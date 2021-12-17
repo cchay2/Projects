@@ -1,4 +1,4 @@
-import pygame, sys
+import pygame, sys, random
 import Constant as constant
 import Player
 import Block
@@ -24,6 +24,8 @@ SCREEN = pygame.display.set_mode( (SCREEN_WIDTH, SCREEN_HEIGHT) )
 GRASS_BLOCK = pygame.image.load( "graphics/blocks/grass.png" ).convert_alpha()
 DIRT_BLOCK = pygame.image.load( "graphics/blocks/dirt.png" ).convert_alpha()
 STONE_BLOCK = pygame.image.load( "graphics/blocks/stone.png" ).convert_alpha()
+WOOD_BLOCK = pygame.image.load( "graphics/blocks/wood.png" ).convert_alpha()
+LEAF_BLOCK = pygame.image.load( "graphics/blocks/leaves.png" ).convert_alpha()
 
 ARROW = pygame.image.load( "graphics/other/crafting_arrow.png" ).convert_alpha()
 
@@ -36,6 +38,7 @@ BLOCK_LIST = []
 CHUNK_LIST = []
 CHUNK_SIZE = 20000 #20,000 in actuality it is 20,200 
 
+    
 
 ## Generate the chunks
 for chunk_width in range( WORLD_LIMIT_X[0], WORLD_LIMIT_X[1]-CHUNK_SIZE//2, CHUNK_SIZE//2 ): #Chunk Size = 10,000
@@ -61,13 +64,40 @@ for yPos in range( WORLD_LIMIT_Y[0], WORLD_LIMIT_Y[1], 50  ):
                     chunk.blocks.append( Block.Block( 3, "Stone Block", constant.STONE_GREY, STONE_BLOCK, xPos, yPos ) )
 
 
+    
+
 clock = pygame.time.Clock()
 
 player = Player.Player( SCREEN_WIDTH//2, SCREEN_HEIGHT//2-100 )
 place_cd = False
 
+
 ## Set Player Chunk
 player.checkSetChunk( CHUNK_LIST )
+
+
+def spawnTree( x, chunk ):
+    tree_height = random.randint( 3, 5 )
+    for i in range( tree_height ):
+        chunk.blocks.append( Block.Block( 4, "Wood Block", constant.WOOD_BROWN, WOOD_BLOCK, x, SURFACE_HEIGHT-50*(i+1) ) )
+    
+    chunk.blocks.append( Block.Block( 5, "Leaf Block", constant.LEAF_GREEN, LEAF_BLOCK, x, SURFACE_HEIGHT-50*(tree_height+1), True ) )
+    
+    for i in range( tree_height-1 ):
+        chunk.blocks.append( Block.Block( 5, "Leaf Block", constant.LEAF_GREEN, LEAF_BLOCK, x-50, SURFACE_HEIGHT-50*(i+2), True ) )
+        chunk.blocks.append( Block.Block( 5, "Leaf Block", constant.LEAF_GREEN, LEAF_BLOCK, x+50, SURFACE_HEIGHT-50*(i+2), True ) )
+    
+    double_leave = tree_height//2
+    for i in range( double_leave ):
+        chunk.blocks.append( Block.Block( 5, "Leaf Block", constant.LEAF_GREEN, LEAF_BLOCK, x-100, SURFACE_HEIGHT-50*(i+2), True ) )
+        chunk.blocks.append( Block.Block( 5, "Leaf Block", constant.LEAF_GREEN, LEAF_BLOCK, x+100, SURFACE_HEIGHT-50*(i+2), True ) )
+        
+        
+for xPos in range( WORLD_LIMIT_X[0], WORLD_LIMIT_X[1], 50 ):
+    for chunk in CHUNK_LIST:
+        if random.randint( 1, 15 ) == 1:
+            spawnTree( xPos, chunk )
+    
 
 while True:
     mouse_pos = pygame.mouse.get_pos()
@@ -147,17 +177,18 @@ while True:
                             player.hotbar[slotIndex] = player.hotbar[i] # Move the dragged block to the new position
                             player.hotbar[i] = target_block # Finish swapping the blocks
                 else:
-                    if player.hotbar[i]["half count"] > 0:
-                        player.hotbar[slotIndex] = player.hotbar[i].copy() # Drag the block to the new spot
-                        
-                        player.hotbar[slotIndex]["count"] = player.hotbar[slotIndex]["half count"]
-                        player.hotbar[slotIndex]["half count"] = 0
-                        
-                        player.hotbar[i]["count"] = player.hotbar[i]["count"] - player.hotbar[i]["half count"]
-                        player.hotbar[i]["half count"] = 0 # Vacate the old spot
-                    else:
-                        player.hotbar[slotIndex] = player.hotbar[i] # Drag the block to the new spot
-                        player.hotbar[i] = 0 # Vacate the old spot
+                    if player.hotbar[i] != 0:
+                        if player.hotbar[i]["half count"] > 0:
+                            player.hotbar[slotIndex] = player.hotbar[i].copy() # Drag the block to the new spot
+                            
+                            player.hotbar[slotIndex]["count"] = player.hotbar[slotIndex]["half count"]
+                            player.hotbar[slotIndex]["half count"] = 0
+                            
+                            player.hotbar[i]["count"] = player.hotbar[i]["count"] - player.hotbar[i]["half count"]
+                            player.hotbar[i]["half count"] = 0 # Vacate the old spot
+                        else:
+                            player.hotbar[slotIndex] = player.hotbar[i] # Drag the block to the new spot
+                            player.hotbar[i] = 0 # Vacate the old spot
         
         
         if event.type == pygame.KEYDOWN:

@@ -284,19 +284,19 @@ class Player():
                             surface.blit( self.hotbar[slot]["img"], ( x+50*slot, 535 ) )
                             surface.blit( constant.FONT.render( str(self.hotbar[slot]["count"]-self.hotbar[slot]["half count"]), False, constant.WHITE ), ( x+25+50*slot, 560 ) )
 
-                            surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0], mouse_pos[1] ) )
-                            surface.blit( constant.FONT.render( str(self.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0]+30, mouse_pos[1]+25 ) )
+                            surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0]-25, mouse_pos[1]-25 ) )
+                            surface.blit( constant.FONT.render( str(self.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0], mouse_pos[1] ) )
                         
                         else:
-                            surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0], mouse_pos[1] ) )
-                            surface.blit( constant.FONT.render( str(self.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0]+30, mouse_pos[1]+25 ) )
+                            surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0]-25, mouse_pos[1]-25 ) )
+                            surface.blit( constant.FONT.render( str(self.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0], mouse_pos[1] ) )
                     
                     elif self.hotbar[slot]["drag"] == False: # Block is not being dragged so draw underfirst so it is underneath                  
                         surface.blit( self.hotbar[slot]["img"], ( x+50*slot, 535 ) )
                         surface.blit( constant.FONT.render( str(self.hotbar[slot]["count"]), False, constant.WHITE ), ( x+25+50*slot, 560 ) )
                     else:
-                        surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0], mouse_pos[1] ) )
-                        surface.blit( constant.FONT.render( str(self.hotbar[slot]["count"]), False, constant.WHITE ), ( mouse_pos[0]+30, mouse_pos[1]+25 ) )
+                        surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0]-25, mouse_pos[1]-25 ) )
+                        surface.blit( constant.FONT.render( str(self.hotbar[slot]["count"]), False, constant.WHITE ), ( mouse_pos[0], mouse_pos[1] ) )
         x = 180
         y = 355
         slot = 9
@@ -313,19 +313,19 @@ class Player():
                                     surface.blit( self.hotbar[slot]["img"], ( x+50*column, y+50*row ) )
                                     surface.blit( constant.FONT.render( str(self.hotbar[slot]["count"]-self.hotbar[slot]["half count"]), False, constant.WHITE ), ( x+50*column+25, y+50*row+25 ) )
 
-                                    surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0], mouse_pos[1] ) )
-                                    surface.blit( constant.FONT.render( str(self.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0]+30, mouse_pos[1]+25 ) )
+                                    surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0]-25, mouse_pos[1]-25 ) )
+                                    surface.blit( constant.FONT.render( str(self.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0], mouse_pos[1] ) )
                                 
                                 else:
-                                    surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0], mouse_pos[1] ) )
-                                    surface.blit( constant.FONT.render( str(self.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0]+30, mouse_pos[1]+25 ) )
+                                    surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0]-25, mouse_pos[1]-25 ) )
+                                    surface.blit( constant.FONT.render( str(self.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0], mouse_pos[1] ) )
                             
                             elif self.hotbar[slot]["drag"] == False: # Block is not being dragged so draw underfirst so it is underneath                  
                                 surface.blit( self.hotbar[slot]["img"], ( x+50*column, y+50*row ) )
                                 surface.blit( constant.FONT.render( str(self.hotbar[slot]["count"]), False, constant.WHITE ), ( x+50*column+25, y+50*row+25 ) )
                             else:
-                                surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0], mouse_pos[1] ) )
-                                surface.blit( constant.FONT.render( str(self.hotbar[slot]["count"]), False, constant.WHITE ), ( mouse_pos[0]+30, mouse_pos[1]+25 ) )
+                                surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0]-25, mouse_pos[1]-25 ) )
+                                surface.blit( constant.FONT.render( str(self.hotbar[slot]["count"]), False, constant.WHITE ), ( mouse_pos[0], mouse_pos[1] ) )
                     slot += 1            
                         
                     
