@@ -18,6 +18,10 @@ class Block():
         self.Rect = pygame.Rect( self.x, self.y, self.width, self.height )
     
     
+    def getObject( self, block_dict ):
+        return Block( block_dict["id"], block_dict["name"], block_dict["color"], block_dict["img"], block_dict["x"], block_dict["y"] )
+    
+    
     def __str__( self ):
         return "X : " + str(self.x) + "; Y: " + str(self.y)
     

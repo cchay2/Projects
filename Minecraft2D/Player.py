@@ -1,5 +1,7 @@
 import pygame
 import Constant as constant
+import Recipes as recipes
+import Block as block
 
 class Player():
     def __init__( self, x, y ):
@@ -54,7 +56,19 @@ class Player():
         
         
         self.show_inventory = False
-        self.craft_table = [0, 0, 0, 0]
+        self.craft_table = [ 0, 0, 0, 0 ]
+        self.craft_slots = []
+        
+        for i in range( 4 ):
+            self.hotbar.append( 0 )
+        
+        for row in range( 2 ):
+            for column in range( 2 ):
+                self.craft_slots.append( ( 450+50*(column), 160+50*(row) ) )
+
+        self.hotbar.append(0) ## for final crafting slot
+        
+        self.crafting = False
         
     
     def adjustPos( self ):
@@ -224,13 +238,13 @@ class Player():
         return False
 
     
-    def collectBlockHotBar( self, block ):
-        for i in range( len(self.hotbar) ): 
+    def collectBlockHotBar( self, block, amount=1 ):
+        for i in range( 36 ): 
             ## First check to see if a block already exists in hotbar
             if self.hotbar[i] != 0:
                 if self.hotbar[i]["id"] == block.getID(): # Block exists
                     if self.hotbar[i]["count"] < 64:
-                        self.hotbar[i]["count"] += 1
+                        self.hotbar[i]["count"] += amount
                         return
         
         for i in range( len(self.hotbar) ): # look for a new slot
@@ -245,7 +259,7 @@ class Player():
                     "y": 535,
                     "drag": False,
                     "half": False,
-                    "count": 1,
+                    "count": amount,
                     "half count": 0
                 }
                 break
@@ -264,70 +278,162 @@ class Player():
             
         for i in self.inventory_slots:
             if mouse_pos[0] >= i[0] and mouse_pos[0] <= i[0]+50 and mouse_pos[1] >= i[1] and mouse_pos[1] <= i[1]+50:
-                #self.printHotbar()
                 return self.inventory_slots.index( i )+9
         
-        #print("break")
-        return False
-    
-    
-    def drawInventory( self, surface, mouse_pos ):
-        for slot in range( self.hotbar_size ):
-            if self.hotbar[slot] != 0:
-                #print(player.hotbar[slot])
-                if self.hotbar[slot]["count"] == 0: ## Player has no more blocks left, set to 0 since last block was used
-                    self.hotbar[slot] = 0
-                else: ## DRAW HOTBAR BLOCKS
-                    x = 180
-                    if self.hotbar[slot]["half"] == True: # Player is dragging with right mouse:
-                        if self.hotbar[slot]["count"] > 1:
-                            surface.blit( self.hotbar[slot]["img"], ( x+50*slot, 535 ) )
-                            surface.blit( constant.FONT.render( str(self.hotbar[slot]["count"]-self.hotbar[slot]["half count"]), False, constant.WHITE ), ( x+25+50*slot, 560 ) )
-
-                            surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0]-25, mouse_pos[1]-25 ) )
-                            surface.blit( constant.FONT.render( str(self.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0], mouse_pos[1] ) )
-                        
-                        else:
-                            surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0]-25, mouse_pos[1]-25 ) )
-                            surface.blit( constant.FONT.render( str(self.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0], mouse_pos[1] ) )
-                    
-                    elif self.hotbar[slot]["drag"] == False: # Block is not being dragged so draw underfirst so it is underneath                  
-                        surface.blit( self.hotbar[slot]["img"], ( x+50*slot, 535 ) )
-                        surface.blit( constant.FONT.render( str(self.hotbar[slot]["count"]), False, constant.WHITE ), ( x+25+50*slot, 560 ) )
-                    else:
-                        surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0]-25, mouse_pos[1]-25 ) )
-                        surface.blit( constant.FONT.render( str(self.hotbar[slot]["count"]), False, constant.WHITE ), ( mouse_pos[0], mouse_pos[1] ) )
-        x = 180
-        y = 355
-        slot = 9
-        if self.show_inventory == True:
-            for row in range( 3 ): ## DRAW INVENTORY BLOCKS
-                for column in range( 9 ):
-                    #print("slot:", slot)
-                    if self.hotbar[slot] != 0:
-                        if self.hotbar[slot]["count"] == 0: ## Player has no more blocks left, set to 0 since last block was used
-                            self.hotbar[slot] = 0
-                        else: ## DRAW HOTBAR BLOCKS
-                            if self.hotbar[slot]["half"] == True: # Player is dragging with right mouse:
-                                if self.hotbar[slot]["count"] > 1:
-                                    surface.blit( self.hotbar[slot]["img"], ( x+50*column, y+50*row ) )
-                                    surface.blit( constant.FONT.render( str(self.hotbar[slot]["count"]-self.hotbar[slot]["half count"]), False, constant.WHITE ), ( x+50*column+25, y+50*row+25 ) )
-
-                                    surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0]-25, mouse_pos[1]-25 ) )
-                                    surface.blit( constant.FONT.render( str(self.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0], mouse_pos[1] ) )
-                                
-                                else:
-                                    surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0]-25, mouse_pos[1]-25 ) )
-                                    surface.blit( constant.FONT.render( str(self.hotbar[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0], mouse_pos[1] ) )
-                            
-                            elif self.hotbar[slot]["drag"] == False: # Block is not being dragged so draw underfirst so it is underneath                  
-                                surface.blit( self.hotbar[slot]["img"], ( x+50*column, y+50*row ) )
-                                surface.blit( constant.FONT.render( str(self.hotbar[slot]["count"]), False, constant.WHITE ), ( x+50*column+25, y+50*row+25 ) )
-                            else:
-                                surface.blit( self.hotbar[slot]["img"], ( mouse_pos[0]-25, mouse_pos[1]-25 ) )
-                                surface.blit( constant.FONT.render( str(self.hotbar[slot]["count"]), False, constant.WHITE ), ( mouse_pos[0], mouse_pos[1] ) )
-                    slot += 1            
-                        
-                    
-                        
+        for i in self.craft_slots:
+            if mouse_pos[0] >= i[0] and mouse_pos[0] <= i[0]+50 and mouse_pos[1] >= i[1] and mouse_pos[1] <= i[1]+50:
+                return self.craft_slots.index( i )+36
+        
+        if mouse_pos[0] >= 610 and mouse_pos[0] <= 610+50 and mouse_pos[1] >= 185 and mouse_pos[1] <= 185+50:
+            return 40
             
+            
+        #print("break")
+        return -1
+    
+    def drawInventory( self, surface, rows, columns, slot, x, y, mouse_pos, inventory ):
+        for row in range( rows ): ## DRAW INVENTORY BLOCKS
+            for column in range( columns ):
+                #print("slot:", slot)
+                if inventory[slot] != 0:
+                    if inventory[slot]["count"] == 0: ## Player has no more blocks left, set to 0 since last block was used
+                        inventory[slot] = 0
+                    else: ## DRAW HOTBAR BLOCKS
+                        if inventory[slot]["half"] == True: # Player is dragging with right mouse:
+                            if inventory[slot]["count"] > 1:
+                                surface.blit( inventory[slot]["img"], ( x+50*column, y+50*row ) )
+                                surface.blit( constant.FONT.render( str(inventory[slot]["count"]-inventory[slot]["half count"]), False, constant.WHITE ), ( x+50*column+25, y+50*row+25 ) )
+
+                                surface.blit( inventory[slot]["img"], ( mouse_pos[0]-25, mouse_pos[1]-25 ) )
+                                surface.blit( constant.FONT.render( str(inventory[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0], mouse_pos[1] ) )
+                            
+                            else:
+                                surface.blit( inventory[slot]["img"], ( mouse_pos[0]-25, mouse_pos[1]-25 ) )
+                                surface.blit( constant.FONT.render( str(inventory[slot]["half count"]), False, constant.WHITE ), ( mouse_pos[0], mouse_pos[1] ) )
+                        
+                        elif inventory[slot]["drag"] == False: # Block is not being dragged so draw underfirst so it is underneath                  
+                            surface.blit( inventory[slot]["img"], ( x+50*column, y+50*row ) )
+                            surface.blit( constant.FONT.render( str(inventory[slot]["count"]), False, constant.WHITE ), ( x+50*column+25, y+50*row+25 ) )
+                        else:
+                            surface.blit( inventory[slot]["img"], ( mouse_pos[0]-25, mouse_pos[1]-25 ) )
+                            surface.blit( constant.FONT.render( str(inventory[slot]["count"]), False, constant.WHITE ), ( mouse_pos[0], mouse_pos[1] ) )
+                slot += 1
+    
+    
+    def addToInventory( self, mouse_pos, inventory ):
+            self.dragging = False
+            
+            for i in range( len( inventory ) ):
+                if inventory[i] != 0:
+                    if inventory[i]["drag"] == True: # We found the block
+                        inventory[i]["drag"] = False
+                        inventory[i]["half"] = False
+                        break
+            
+            
+            #if inventory[i] != 0:
+            if self.hotbar_rect.collidepoint( mouse_pos ) or self.inventory_rect.collidepoint( mouse_pos ):
+                
+                slotIndex = self.findEmptyHotbarSlot( mouse_pos )
+                
+                if self.crafting == True:
+                    #print("Adding block to inventory")
+                    self.crafting = False
+                    new_block = block.Block.getObject( block.Block, self.hotbar[40] )
+                    self.collectBlockHotBar( new_block, self.hotbar[40]["count"] )
+                    
+                
+                if slotIndex == 40:
+                    pass
+                elif slotIndex != -1: ## Handle False being thrown when player clcks on non-clickable :
+        
+                    if inventory[slotIndex] != 0 and inventory[i] != 0: # Existing block at position slotIndex
+                        if slotIndex != i: #Make sure the id's are different
+                            if inventory[slotIndex]["id"] == inventory[i]["id"]: #combine the stack
+                                if inventory[i]["half count"] > 0:
+                                    if inventory[slotIndex]["count"] + inventory[i]["half count"] > 64:
+                                        remainder = inventory[i]["half count"] + inventory[slotIndex]["count"] - 64
+                                        inventory[slotIndex]["count"] = 64
+                                        inventory[i]["count"] += ( remainder - inventory[i]["half count"] )
+                                        inventory[i]["half count"] = 0
+                                    else: # adding blocks to a stack less than full 
+                                        inventory[slotIndex]["count"] += inventory[i]["half count"]
+                                        inventory[i]["count"] -= inventory[i]["half count"]
+                                        inventory[i]["half count"] = 0
+                                else:
+                                    if inventory[slotIndex]["count"] + inventory[i]["count"] >= 64:
+                                        remainder = inventory[i]["count"] + inventory[slotIndex]["count"] - 64
+                                        inventory[slotIndex]["count"] = 64
+                                        inventory[i]["count"] = remainder
+                                        
+                                    else:
+                                        inventory[slotIndex]["count"] += inventory[i]["count"]
+                                        inventory[i] = 0
+                            else:
+                                target_block = inventory[slotIndex]
+                                inventory[slotIndex] = inventory[i] # Move the dragged block to the new position
+                                inventory[i] = target_block # Finish swapping the blocks
+                    else:
+                        if inventory[i] != 0:
+                            if inventory[i]["half count"] > 0:
+                                inventory[slotIndex] = inventory[i].copy() # Drag the block to the new spot
+                                
+                                inventory[slotIndex]["count"] = inventory[slotIndex]["half count"]
+                                inventory[slotIndex]["half count"] = 0
+                                
+                                inventory[i]["count"] = inventory[i]["count"] - inventory[i]["half count"]
+                                inventory[i]["half count"] = 0 # Vacate the old spot
+                            else:
+                                inventory[slotIndex] = inventory[i] # Drag the block to the new spot
+                                inventory[i] = 0 # Vacate the old spot
+    
+    
+    def craft( self ):
+        block_id = 0
+        for i in range( 36, 40 ):
+            if self.hotbar[i] != 0:
+                self.craft_table[ i-36 ] = self.hotbar[i]["id"]
+                block_id = self.hotbar[i]["id"]
+            else:
+                self.craft_table[ i-36 ] = 0
+        
+        table_copy = self.craft_table[:]
+        for i in range(5):
+            table_copy.append(0)
+        
+        #print("RECIPES")
+        for recipe in recipes.RECIPES:
+            if recipe[ "id" ] == block_id:
+                for i in recipe[ "position" ]:
+                    #print( "Table :", self.craft_table )
+                    #print( "Copy  : ", table_copy )
+                    #print( "Recipe: ", i )
+                    if table_copy == i:
+                        self.hotbar[40] = {
+                                            "id": recipe["r id"],
+                                            "name": "Wood Plank",
+                                            "img": recipe["img"],
+                                            "color": recipe["color"],
+                                            "rect": pygame.Rect( 615, 190, 40, 40 ),
+                                            "x" : 615,
+                                            "y": 190,
+                                            "drag": False,
+                                            "half": False,
+                                            "count": recipe["amount"],
+                                            "half count": 0
+                                        }
+                        return
+                else:
+                    self.hotbar[40] = 0
+            else:
+                self.hotbar[40] = 0
+    
+    
+    def craftBlock( self ):
+        for block in self.hotbar[ 36:40 ]:
+            #print( block )
+            if block != 0:
+                block["count"] -= 1
+                if block["count"] == 0:
+                    block = 0
+                        
