@@ -9,6 +9,13 @@ GAME IS IN ALPHA!!!
 
 # Changelog
 
+## v.0.5.1
++ Fixed Tree Spawn so it doesn't spawn on Player
++ Fixed Tree Spawns so we don't have 50 times the trees on map
+
+## v.0.5
++ Added Crafting System
++ Added 1 Recipe: Wood Planks
 
 ## v.0.4
 + Added Inventory System
