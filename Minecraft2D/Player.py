@@ -2,6 +2,8 @@ import pygame
 import Constant as constant
 import Recipes as recipes
 import Block as block
+import Skin as skin
+import math
 
 class Player():
     def __init__( self, x, y ):
@@ -18,15 +20,20 @@ class Player():
         
         self.velocity = 4
         
+        self.direction = "left"
+        
         self.oldy = self.y
         self.gravity = 6
         self.jump_increment = 10
         self.jump_height = 80
         
+        self.is_walking = False
         self.is_jumping = False
         self.is_falling = True
     
         self.color = constant.WHITE
+        
+        self.skin = None
         
         self.dRect = pygame.Rect( self.x, self.y, self.width, self.height ) #Draw
         self.Rect = pygame.Rect( self.x, self.y, self.width, self.height ) #x, y, width, height
@@ -69,6 +76,31 @@ class Player():
         self.hotbar.append(0) ## for final crafting slot
         
         self.crafting = False
+    
+    def setSkin( self, skin ):
+        """Initiate all the rectangle positions"""
+        self.skin = skin
+        
+        self.skin.bot_arm_rect.x = self.x+7
+        self.skin.bot_arm_rect.y = self.y+30
+        
+        self.skin.bot_leg_rect.x = self.x+7
+        self.skin.bot_leg_rect.y = self.y+30+35
+        
+        self.skin.body_rect.x = self.x+7
+        self.skin.body_rect.y = self.y+30
+        
+        self.skin.head_left_rect.x = self.x
+        self.skin.head_left_rect.y = self.y
+        
+        self.skin.head_right_rect.x = self.x
+        self.skin.head_right_rect.y = self.y
+            
+        self.skin.top_leg_rect.x = self.x+7
+        self.skin.top_leg_rect.y = self.y+30+35
+        
+        self.skin.top_arm_rect.x = self.x+7
+        self.skin.top_arm_rect.y = self.y+30
         
     
     def adjustPos( self ):
@@ -190,11 +222,177 @@ class Player():
         #print( "x scroll:", self.x+self.scroll[0] )
         self.dRect = pygame.Rect( self.x+self.scroll[0], self.y+self.scroll[1], self.width, self.height ) #x, y, width, height
         self.Rect = pygame.Rect( self.x, self.y, self.width, self.height )
+    
+    
+    def headAnimation( self, mouse_pos ):
+        center_point = (self.skin.getHeadRightRect().centerx, self.skin.getHeadRightRect().centery)
+        adj = mouse_pos[1] - center_point[1]
+        opp = mouse_pos[0] - center_point[0]
+        try:
+            angle = round( math.atan(adj/opp)*100 )
+        except:
+            angle = 0
+            
+        if -60 < angle < 60:
+            if angle < 0:
+                self.skin.head_margin = -(-angle//5)
+            else:
+                self.skin.head_margin = angle//5
+            
+            
+            self.skin.setHeadAngle( -angle )
+            
         
-    def draw( self, surface ):
+        if mouse_pos[0] - center_point[0] >= 0:
+            self.skin.head_right = pygame.transform.rotate( self.skin.head_right_r, self.skin.getHeadAngle() )
+            self.direction = "right"
+        else:
+            self.skin.head_left = pygame.transform.rotate( self.skin.head_left_r, self.skin.getHeadAngle() )
+            self.direction = "left"
+    
+    
+    def walkAnimation( self ):
+        self.topArmWalkAnimation()
+        self.botArmWalkAnimation()
+        self.topLegWalkAnimation()
+        self.botLegWalkAnimation()
+    
+    def topArmWalkAnimation( self ):
+        if self.skin.swing_arm == "up":
+            if self.skin.getTopArmAngle() <= 50:
+                self.skin.changeTopArmAngle( 10 )
+                self.skin.top_arm_margin += 2
+                self.skin.top_arm = pygame.transform.rotate( self.skin.top_arm_r, self.skin.getTopArmAngle() )
+            else:
+                self.skin.swing_arm = "down"
+                self.skin.top_arm_margin = 4
+        else:
+            if self.skin.getTopArmAngle() >= -50:
+                self.skin.changeTopArmAngle( -10 )
+                self.skin.top_arm_margin -= 2
+                self.skin.top_arm = pygame.transform.rotate( self.skin.top_arm_r, self.skin.getTopArmAngle() )
+            else:
+                self.skin.swing_arm = "up"
+                self.skin.top_arm_margin = -16
+                
+    
+    def botArmWalkAnimation( self ):
+        if self.skin.swing_arm == "down":
+            if self.skin.getBotArmAngle() <= 50:
+                self.skin.changeBotArmAngle( 10 )
+                self.skin.bot_arm_margin += 2
+                self.skin.bot_arm = pygame.transform.rotate( self.skin.bot_arm_r, self.skin.getBotArmAngle() )
+            else:
+                self.skin.bot_arm_margin = 4
+        else:
+            if self.skin.getBotArmAngle() >= -50:
+                self.skin.changeBotArmAngle( -10 )
+                self.skin.bot_arm_margin -= 2
+                self.skin.bot_arm = pygame.transform.rotate( self.skin.bot_arm_r, self.skin.getBotArmAngle() )
+            else:
+                self.skin.bot_arm_margin = -16
+                
+    
+    def botLegWalkAnimation( self ):
+        if self.skin.swing_arm == "up":
+            if self.skin.getBotLegAngle() <= 50:
+                self.skin.changeBotLegAngle( 10 )
+                self.skin.bot_leg_margin += 2
+                self.skin.bot_leg = pygame.transform.rotate( self.skin.bot_leg_r, self.skin.getBotLegAngle() )
+            else:
+                self.skin.bot_leg_margin = 4
+        else:
+            if self.skin.getBotLegAngle() >= -50:
+                self.skin.changeBotLegAngle( -10 )
+                self.skin.bot_leg_margin -= 2
+                self.skin.bot_leg = pygame.transform.rotate( self.skin.bot_leg_r, self.skin.getBotLegAngle() )
+            else:
+                self.skin.bot_leg_margin = -16
+                
+    
+    def topLegWalkAnimation( self ):
+        if self.skin.swing_arm == "down":
+            if self.skin.getTopLegAngle() <= 50:
+                self.skin.changeTopLegAngle( 10 )
+                self.skin.top_leg_margin += 2
+                self.skin.top_leg = pygame.transform.rotate( self.skin.top_leg_r, self.skin.getTopLegAngle() )
+            else:
+                self.skin.top_leg_margin = 4
+        else:
+            if self.skin.getTopArmAngle() >= -50:
+                self.skin.changeTopLegAngle( -10 )
+                self.skin.top_leg_margin -= 2
+                self.skin.top_leg = pygame.transform.rotate( self.skin.top_leg_r, self.skin.getTopLegAngle() )
+            else:
+                self.skin.top_leg_margin = 0
+    
+    
+    def resetAnimation( self ):
+        self.skin.top_arm_margin = 0
+        self.skin.bot_arm_margin = 0
+        self.skin.top_leg_margin = 0
+        self.skin.bot_leg_margin = 0
+        
+        self.skin.top_arm = self.skin.top_arm_r
+        self.skin.bot_arm = self.skin.bot_arm_r
+        self.skin.top_leg = self.skin.top_leg_r
+        self.skin.bot_leg = self.skin.bot_leg_r
+        
+        self.skin.resetTopArmAngle()
+        self.skin.resetBotArmAngle()
+        self.skin.resetTopLegAngle()
+        self.skin.resetBotLegAngle()
+
+    
+    
+    def updateSkinRects( self, x, y ):
+        self.skin.head_right_rect.x = x+self.skin.head_margin
+        self.skin.head_left_rect.x = x+self.skin.head_margin
+        self.skin.body_rect.x = x+8
+        self.skin.top_arm_rect.x = x+8+self.skin.top_arm_margin
+        self.skin.bot_arm_rect.x = x+8+self.skin.bot_arm_margin
+        self.skin.top_leg_rect.x = x+8+self.skin.top_leg_margin
+        self.skin.bot_leg_rect.x = x+8+self.skin.bot_leg_margin
+        
+        self.skin.head_right_rect.y = y
+        self.skin.head_left_rect.y = y
+        self.skin.body_rect.y = y+30
+        self.skin.top_arm_rect.y = y+30
+        self.skin.bot_arm_rect.y = y+30
+        self.skin.top_leg_rect.y = y+60
+        self.skin.bot_leg_rect.y = y+60
+    
+        
+    def draw( self, surface, mouse_pos ):
         """Update Player Rect then Draw"""
         self.updateRect()
-        pygame.draw.rect( surface, self.color, self.dRect )
+        #pygame.draw.rect( surface, self.color, self.dRect )
+        
+        x = self.x+self.scroll[0]
+        y = self.y+self.scroll[1]
+        
+        self.updateSkinRects( x, y )
+        
+        
+        if self.is_walking:
+            self.walkAnimation()
+        else:
+            self.resetAnimation()
+            
+            
+        self.headAnimation( mouse_pos )    
+        
+        surface.blit( self.skin.getBotArm(), self.skin.getBotArmRect() )
+        surface.blit( self.skin.getBotLeg(), self.skin.getBotLegRect() )
+        surface.blit( self.skin.getBody(), self.skin.getBodyRect() )
+        
+        if self.direction == "left":
+            surface.blit( self.skin.getHeadLeft(), self.skin.getHeadLeftRect() )
+        else:
+            surface.blit( self.skin.getHeadRight(), self.skin.getHeadRightRect() )
+            
+        surface.blit( self.skin.getTopLeg(), self.skin.getTopLegRect() )
+        surface.blit( self.skin.getTopArm(), self.skin.getTopArmRect() )
     
     
     def checkCeiling( self, chunk ):
@@ -253,6 +451,7 @@ class Player():
                     "id": block.getID(),
                     "name": block.getName(),
                     "img": block.getImage(),
+                    "tile": block.getTile(),
                     "color": block.getColor(),
                     "rect": pygame.Rect( 180+50*i, 535, 40, 40 ),
                     "x" : 180+50*i,
@@ -413,6 +612,7 @@ class Player():
                                             "id": recipe["r id"],
                                             "name": "Wood Plank",
                                             "img": recipe["img"],
+                                            "tile": recipe["tile"],
                                             "color": recipe["color"],
                                             "rect": pygame.Rect( 615, 190, 40, 40 ),
                                             "x" : 615,

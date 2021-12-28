@@ -3,6 +3,7 @@ import Constant as constant
 import Player
 import Block
 import Chunk
+import Skin
 
 # normal
 # * Important
@@ -27,14 +28,47 @@ WORLD_LIMIT_Y = ( SURFACE_HEIGHT, SURFACE_HEIGHT + 50*50 ) # 50 blocks down
 
 SCREEN = pygame.display.set_mode( (SCREEN_WIDTH, SCREEN_HEIGHT) )
 
+GRASS_TILE = pygame.image.load( "graphics/tiles/grass.png" )
+DIRT_TILE = pygame.image.load( "graphics/tiles/dirt.png" )
+STONE_TILE = pygame.image.load( "graphics/tiles/stone.png" )
+WOOD_TILE = pygame.image.load( "graphics/tiles/oak-log.png" )
+LEAF_TILE = pygame.image.load( "graphics/tiles/oak-leaf.png" )
 
 GRASS_BLOCK = pygame.image.load( "graphics/blocks/grass.png" ).convert_alpha()
 DIRT_BLOCK = pygame.image.load( "graphics/blocks/dirt.png" ).convert_alpha()
 STONE_BLOCK = pygame.image.load( "graphics/blocks/stone.png" ).convert_alpha()
-WOOD_BLOCK = pygame.image.load( "graphics/blocks/wood.png" ).convert_alpha()
+WOOD_BLOCK = pygame.image.load( "graphics/blocks/oak-log.png" ).convert_alpha()
 LEAF_BLOCK = pygame.image.load( "graphics/blocks/leaves.png" ).convert_alpha()
 
 ARROW = pygame.image.load( "graphics/other/crafting_arrow.png" ).convert_alpha()
+
+head_right = pygame.transform.scale( pygame.image.load( "graphics/player/head_right.png" ), (30, 30) )
+head_left = pygame.transform.scale( pygame.image.load( "graphics/player/head_left.png" ), (30, 30) )
+body = pygame.transform.scale( pygame.image.load( "graphics/player/body.png" ), (16, 35) )
+top_arm = pygame.transform.scale( pygame.image.load( "graphics/player/top_arm.png" ), (16, 35) )
+bot_arm = pygame.transform.scale( pygame.image.load( "graphics/player/bot_arm.png" ), (16, 35) )
+top_leg = pygame.transform.scale( pygame.image.load( "graphics/player/top_leg.png" ), (16, 40) )
+bot_leg = pygame.transform.scale( pygame.image.load( "graphics/player/bot_leg.png" ), (16, 40) )
+
+
+
+default_skin_dict = {
+    "head_left" : { "img": head_left, 
+                   "rect":  head_left.get_rect()},
+    "head_right": { "img": head_right, 
+                   "rect":  head_right.get_rect()},
+    "body": { "img": body, 
+            "rect":  body.get_rect()},
+    "top_arm": { "img": top_arm, 
+                "rect":  top_arm.get_rect()},
+    "bot_arm": { "img": bot_arm, 
+                "rect":  bot_arm.get_rect()},
+    "top_leg": { "img": top_leg, 
+                "rect":  top_leg.get_rect()},
+    "bot_leg": { "img": bot_leg, 
+                "rect":  bot_leg.get_rect()}
+}
+default_skin = Skin.Skin( default_skin_dict )
 
 window = {
     "x": [ 0, SCREEN_WIDTH ],
@@ -51,24 +85,17 @@ CHUNK_SIZE = 10000 #10,000 in actuality it is 10,100? or 2000*50 or 100,000 bloc
 for chunk_width in range( WORLD_LIMIT_X[0], WORLD_LIMIT_X[1]-CHUNK_SIZE//2, CHUNK_SIZE//2 ): #Chunk Size = 10,000
     CHUNK_LIST.append( Chunk.Chunk( chunk_width, chunk_width+CHUNK_SIZE//2 ) )
 
-
-# Old Slow way of generating world
-for yPos in range( WORLD_LIMIT_Y[0], WORLD_LIMIT_Y[1], 50  ):
-    for xPos in range( WORLD_LIMIT_X[0], WORLD_LIMIT_X[1], 50 ):
-        BLOCK_LIST.append( Block.Block( 0, "Grass Block", constant.GRASS_GREEN, GRASS_BLOCK, xPos, yPos ) )
-        
-
 ## Generate all blocks
 for yPos in range( WORLD_LIMIT_Y[0], WORLD_LIMIT_Y[1], 50  ):
     for xPos in range( WORLD_LIMIT_X[0], WORLD_LIMIT_X[1], 50 ):
         for chunk in CHUNK_LIST: # add blocks to the chunk
             if xPos >= chunk.getStart() and xPos < chunk.getEnd():
                 if yPos >= SURFACE_HEIGHT and yPos < SURFACE_HEIGHT + 50:
-                    chunk.blocks.append( Block.Block( 1, "Grass Block", constant.GRASS_GREEN, GRASS_BLOCK, xPos, yPos ) )
+                    chunk.blocks.append( Block.Block( 1, "Grass Block", constant.GRASS_GREEN, GRASS_BLOCK, GRASS_TILE, xPos, yPos ) )
                 elif yPos >= SURFACE_HEIGHT+50 and yPos < SURFACE_HEIGHT + 50*4:
-                    chunk.blocks.append( Block.Block( 2, "Dirt Block", constant.DIRT_BROWN, DIRT_BLOCK, xPos, yPos ) )
+                    chunk.blocks.append( Block.Block( 2, "Dirt Block", constant.DIRT_BROWN, DIRT_BLOCK, DIRT_TILE, xPos, yPos ) )
                 else:
-                    chunk.blocks.append( Block.Block( 3, "Stone Block", constant.STONE_GREY, STONE_BLOCK, xPos, yPos ) )
+                    chunk.blocks.append( Block.Block( 3, "Stone Block", constant.STONE_GREY, STONE_BLOCK, STONE_TILE, xPos, yPos ) )
 
 
     
@@ -76,6 +103,7 @@ for yPos in range( WORLD_LIMIT_Y[0], WORLD_LIMIT_Y[1], 50  ):
 clock = pygame.time.Clock()
 
 player = Player.Player( SCREEN_WIDTH//2, SCREEN_HEIGHT//2-100 )
+player.setSkin( default_skin )
 place_cd = False
 
 
@@ -91,18 +119,20 @@ def spawnTree( x, chunk ):
     else:
         tree_height = random.randint( 3, 5 )
         for i in range( tree_height ):
-            chunk.blocks.append( Block.Block( 4, "Wood Block", constant.WOOD_BROWN, WOOD_BLOCK, x, SURFACE_HEIGHT-50*(i+1) ) )
+            chunk.blocks.append( Block.Block( 4, "Wood Block", constant.WOOD_BROWN, WOOD_BLOCK, WOOD_TILE, x, SURFACE_HEIGHT-50*(i+1) ) )
         
-        chunk.blocks.append( Block.Block( 5, "Leaf Block", constant.LEAF_GREEN, LEAF_BLOCK, x, SURFACE_HEIGHT-50*(tree_height+1), True ) )
+        chunk.blocks.append( Block.Block( 5, "Leaf Block", constant.LEAF_GREEN, LEAF_BLOCK, LEAF_TILE, x, SURFACE_HEIGHT-50*(tree_height+1), True ) )
         
         for i in range( tree_height-1 ):
-            chunk.blocks.append( Block.Block( 5, "Leaf Block", constant.LEAF_GREEN, LEAF_BLOCK, x-50, SURFACE_HEIGHT-50*(i+2), True ) )
-            chunk.blocks.append( Block.Block( 5, "Leaf Block", constant.LEAF_GREEN, LEAF_BLOCK, x+50, SURFACE_HEIGHT-50*(i+2), True ) )
+            chunk.blocks.append( Block.Block( 5, "Leaf Block", constant.LEAF_GREEN, LEAF_BLOCK, LEAF_TILE, x-50, SURFACE_HEIGHT-50*(i+2), True ) )
+            chunk.blocks.append( Block.Block( 5, "Leaf Block", constant.LEAF_GREEN, LEAF_BLOCK, LEAF_TILE, x+50, SURFACE_HEIGHT-50*(i+2), True ) )
+            chunk.blocks.append( Block.Block( 5, "Leaf Block", constant.LEAF_GREEN, LEAF_BLOCK, LEAF_TILE, x, SURFACE_HEIGHT-50*(i+2), True ) )
         
         double_leave = tree_height//2
         for i in range( double_leave ):
-            chunk.blocks.append( Block.Block( 5, "Leaf Block", constant.LEAF_GREEN, LEAF_BLOCK, x-100, SURFACE_HEIGHT-50*(i+2), True ) )
-            chunk.blocks.append( Block.Block( 5, "Leaf Block", constant.LEAF_GREEN, LEAF_BLOCK, x+100, SURFACE_HEIGHT-50*(i+2), True ) )
+            chunk.blocks.append( Block.Block( 5, "Leaf Block", constant.LEAF_GREEN, LEAF_BLOCK, LEAF_TILE, x-100, SURFACE_HEIGHT-50*(i+2), True ) )
+            chunk.blocks.append( Block.Block( 5, "Leaf Block", constant.LEAF_GREEN, LEAF_BLOCK, LEAF_TILE, x+100, SURFACE_HEIGHT-50*(i+2), True ) )
+            chunk.blocks.append( Block.Block( 5, "Leaf Block", constant.LEAF_GREEN, LEAF_BLOCK, LEAF_TILE, x, SURFACE_HEIGHT-50*(i+2), True ) )
         
         
 for chunk in CHUNK_LIST:
@@ -112,6 +142,7 @@ for chunk in CHUNK_LIST:
     
 
 while True:
+    player.is_walking = False
     mouse_pos = pygame.mouse.get_pos()
     keys = pygame.key.get_pressed()
     
@@ -216,7 +247,7 @@ while True:
                 else:
                     if player.hotbar[player.hotbar_index] != 0: ## hot bar slot is actually a block
                         if player.hotbar[player.hotbar_index]["count"] > 0:
-                            new_block = Block.Block( player.hotbar[player.hotbar_index]["id"], player.hotbar[player.hotbar_index]["name"], player.hotbar[player.hotbar_index]["color"], player.hotbar[player.hotbar_index]["img"], mouse_pos[0]-player.scroll[0], mouse_pos[1]-player.scroll[1] )
+                            new_block = Block.Block( player.hotbar[player.hotbar_index]["id"], player.hotbar[player.hotbar_index]["name"], player.hotbar[player.hotbar_index]["color"], player.hotbar[player.hotbar_index]["img"], player.hotbar[player.hotbar_index]["tile"], mouse_pos[0]-player.scroll[0], mouse_pos[1]-player.scroll[1] )
                             new_block.adjustPosition()
                             player.updateRect()
                             if player.dragging == False:
@@ -232,9 +263,13 @@ while True:
     
     if keys[pygame.K_d]:
         player.moveRight( CHUNK_LIST[player.getChunkIndex()] )
+        player.direction = "right"
+        player.is_walking = True
     
     if keys[pygame.K_a]:
         player.moveLeft( CHUNK_LIST[player.getChunkIndex()] )
+        player.direction = "left"
+        player.is_walking = True
         
     
     # Scrolling:
@@ -251,7 +286,7 @@ while True:
             
     SCREEN.fill( constant.SKY_BLUE )
     
-    player.draw( SCREEN )
+    player.draw( SCREEN, mouse_pos )
 
     ## Log player action
     mouse_press = pygame.mouse.get_pressed()

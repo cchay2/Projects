@@ -1,11 +1,12 @@
 import pygame, Constant
 
 class Block():
-    def __init__( self, id, name, color, image, x, y, transparent=False ):
+    def __init__( self, id, name, color, image, tile, x, y, transparent=False ):
         self.id = id
         self.name = name
         self.color = color
         self.image = image
+        self.tile = tile
         self.x = x
         self.y = y
         
@@ -19,7 +20,7 @@ class Block():
     
     
     def getObject( self, block_dict ):
-        return Block( block_dict["id"], block_dict["name"], block_dict["color"], block_dict["img"], block_dict["x"], block_dict["y"] )
+        return Block( block_dict["id"], block_dict["name"], block_dict["color"], block_dict["img"], block_dict["tile"], block_dict["x"], block_dict["y"] )
     
     
     def __str__( self ):
@@ -33,6 +34,9 @@ class Block():
     
     def getImage( self ):
         return self.image
+    
+    def getTile( self ):
+        return self.tile
 
     def getColor( self ):
         return self.color
@@ -46,7 +50,10 @@ class Block():
         rect = pygame.Rect( self.x + scroll[0], self.y+scroll[1], self.width, self.height )
         if self.isOnScreen( window ):
             self.drawn = True
-            pygame.draw.rect( surface, self.color, rect, 5 )
+            if self.tile == None:
+                pygame.draw.rect( surface, self.color, rect, 5 )
+            else:
+                surface.blit( self.tile, (self.x+scroll[0], self.y+scroll[1]) )
         else:
             self.drawn = False
     
