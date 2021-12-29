@@ -7,7 +7,7 @@ GAME IS IN ALPHA!!!
 
 
 
-# Changelog
+# Changelog for Minecraft 2D
 
 ## v.0.6.0 Player Animations
 + Added Player Skin framework so user can select any skin they want
