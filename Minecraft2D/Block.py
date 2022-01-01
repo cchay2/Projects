@@ -80,3 +80,96 @@ class Block():
         
         return False
         
+        
+        
+class FBlock(Block):
+    def __init__( self, id, name, color, image, tile, x, y, transparent=False ):
+        Block.__init__( self, id, name, color, image, tile, x, y, transparent )
+        
+        self.float_velocity = 2
+        self.velocity = 5
+        self.float_height_min = 10
+        self.float_height_max = 20
+        
+        self.anchor = 0
+        
+        self.block = None
+        
+        self.falling = True
+        self.up = True
+        self.block_below = False
+        
+        self.collected = False
+        
+    
+    def checkColliding( self, chunk ):
+        falling_rect = pygame.Rect( self.x, self.y, self.width, self.height+self.velocity )
+        for block in chunk.blocks:
+            if falling_rect.colliderect( block.Rect ):
+                self.block = block
+                self.block_below = True
+                return True
+        
+        return False
+    
+    def animate( self, surface, chunk, player_pos, window, scroll ):
+        if abs( self.x-player_pos[0] ) < 100 and abs( self.y-player_pos[1] ) < 50 and self.falling == False:
+            self.Rect = pygame.Rect( self.x+7, self.y+7, 26, 26 )
+            if self.Rect.colliderect( pygame.Rect( player_pos[0], player_pos[1], 30, 100 ) ):
+                self.collected = True
+            else:
+                velocity = 5
+                if self.x > player_pos[0]:
+                    self.x -= velocity
+                elif self.x < player_pos[0]:
+                    self.x += velocity
+                
+                if self.y > player_pos[1]+50:
+                    self.y -= 1
+                elif self.y < player_pos[1]+50:
+                    self.y += 1
+            
+            self.draw( surface, window, scroll )
+            
+        else:
+            if self.falling == False and self.block not in chunk.blocks:
+                self.falling = True
+            
+            if self.falling:
+                if self.checkColliding( chunk ) == True:
+                    self.falling = False # Block should float
+                    self.up = True
+                    self.anchor = self.y
+                else:
+                    self.y += self.velocity
+                    
+            else: # block is floating
+                if self.checkColliding( chunk ) == False:
+                    if self.block_below == False:
+                        self.falling = True
+                    else:
+                        self.falling = False
+                
+                if self.up == True:
+                    if self.y <= self.anchor-self.float_height_max:
+                        self.up = False
+                    else:
+                        self.y -= self.float_velocity
+                else: # floating down
+                    if self.y >= self.anchor+self.float_height_min:
+                        self.up = True
+                    else:
+                        self.y += self.float_velocity
+            
+            self.draw( surface, window, scroll )
+        
+        #print(self.falling)
+                    
+    
+    def draw( self, surface, window, scroll ):
+        rect = pygame.Rect( self.x + scroll[0], self.y+scroll[1], self.width, self.height )
+        if self.isOnScreen( window ):
+            self.drawn = True
+            surface.blit( self.image, (self.x+scroll[0], self.y+scroll[1]) )
+        else:
+            self.drawn = False

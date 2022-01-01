@@ -9,8 +9,8 @@ pygame.init()
 WOOD_PLANKS = {
     "id": 4, # WOOD_BLOCK ID
     "name": "Wood Planks",
-    "img": pygame.image.load( "graphics/blocks/wood-oak-plank.png" ),
-    "tile": None,
+    "img": pygame.image.load( "graphics/blocks/oak-plank.png" ),
+    "tile": pygame.image.load( "graphics/tiles/oak-plank.png" ),
     "color": constant.WOOD_BROWN,
     "cost": 1,
     "r id": 6,

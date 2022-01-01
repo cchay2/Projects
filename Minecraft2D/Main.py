@@ -4,6 +4,7 @@ import Player
 import Block
 import Chunk
 import Skin
+import time
 
 # normal
 # * Important
@@ -98,7 +99,7 @@ for yPos in range( WORLD_LIMIT_Y[0], WORLD_LIMIT_Y[1], 50  ):
                     chunk.blocks.append( Block.Block( 3, "Stone Block", constant.STONE_GREY, STONE_BLOCK, STONE_TILE, xPos, yPos ) )
 
 
-    
+floating_blocks = []   
 
 clock = pygame.time.Clock()
 
@@ -240,6 +241,8 @@ while True:
         
         elif event.type == pygame.MOUSEBUTTONDOWN: ## Moved placing down last to fix the place bug
             if event.button == 3: # right click is replace block
+                player.place_block = True
+                player.placeBlockAnimation()
                 if player.show_inventory == True and not player.inventory_rect.collidepoint( mouse_pos ) and not player.hotbar_rect.collidepoint( mouse_pos ):
                     player.show_inventory = False
                 elif player.show_inventory == True:
@@ -258,17 +261,29 @@ while True:
                                     else:
                                         CHUNK_LIST[player.getChunkIndex()].addBlock( new_block )
                                         player.hotbar[player.hotbar_index]["count"] -= 1
+                                        
+            if event.button == 1:
+                player.attack = True
+                player.holding = True
+                
+        
+        if event.type == pygame.MOUSEBUTTONUP:
+            player.holding = False
+            player.breaking = False
+    
+    
+    #print( player.holding )
     
     ## Player movement
     
     if keys[pygame.K_d]:
         player.moveRight( CHUNK_LIST[player.getChunkIndex()] )
-        player.direction = "right"
+        #player.direction = "right"
         player.is_walking = True
     
     if keys[pygame.K_a]:
         player.moveLeft( CHUNK_LIST[player.getChunkIndex()] )
-        player.direction = "left"
+        #player.direction = "left"
         player.is_walking = True
         
     
@@ -290,7 +305,9 @@ while True:
 
     ## Log player action
     mouse_press = pygame.mouse.get_pressed()
-    if mouse_press[0]: #left click is destroy block
+    if player.holding and player.attack == False: #left click is destroy block
+        #player.place_block = True
+        #player.placeBlockAnimation()
         if not player.hotbar_rect.collidepoint( mouse_pos ) and not player.dragging:
             if player.show_inventory == True and not player.inventory_rect.collidepoint( mouse_pos ) and not player.hotbar_rect.collidepoint( mouse_pos ):
                 player.show_inventory = False
@@ -300,10 +317,17 @@ while True:
                 ## Change this later so player can only destroy blocks in range
                 for chunk in CHUNK_LIST:
                     if player.getCoords()[0] >= chunk.getStart() and player.getCoords()[0] <= chunk.getEnd(): ## Checking to see if player is in a chunk
-                        for block in chunk.blocks:
+                        for index in range( len(chunk.blocks)-1 , 0, -1):
+                            block = chunk.blocks[index]
                             if block.Rect.collidepoint( mouse_pos[0]-player.scroll[0], mouse_pos[1]-player.scroll[1] ):
-                                player.collectBlockHotBar( block )
-                                chunk.blocks.remove( block )
+                                if player.holding == True:
+                                    player.breaking = True
+                                    #player.collectBlockHotBar( block ) #TODO: Change this later
+                                    chunk.blocks.remove( block )
+                                    floating_blocks.append( 
+                                                           Block.FBlock( block.getID(), block.getName(), block.getColor(), block.getImage(), block.getTile(), block.x, block.y )
+                                                           )
+                                    print( block.y )
                                             
     
     # 20,200 blocks drawn
@@ -318,6 +342,15 @@ while True:
     for block in chunk.blocks: #chunk that the player is in
         block.draw( SCREEN, window, player.scroll )
         #count += 1
+        
+    for fblock in floating_blocks[:]:
+        fblock.animate( SCREEN, CHUNK_LIST[player.chunk_index], (player.x, player.y), window, player.scroll )
+        if fblock.collected:
+            print( fblock.getName() )
+            player.collectBlockHotBar( Block.Block( fblock.getID(), fblock.getName(), fblock.getColor(), fblock.getImage(), fblock.getTile(), fblock.x, fblock.y ) )
+            floating_blocks.remove( fblock )
+    
+    #print( floating_blocks )
     
     #print(  player.x - CHUNK_LIST[player.getChunkIndex()-1].getStart() )
     if player.x - chunk.getStart() <= 600: #Chunk Before the current Chunk player is in | range of 9 blocks
@@ -384,3 +417,4 @@ while True:
     
     pygame.display.update()
     clock.tick( 60 )
+    #time.sleep(0.5)

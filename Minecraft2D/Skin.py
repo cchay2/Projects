@@ -24,7 +24,7 @@ class Skin:
         self.top_leg_rect = img_dict["top_leg"]["rect"]
         self.bot_leg_rect = img_dict["bot_leg"]["rect"]
         
-        self.swing_arm = "up"
+        self.swing_leg = "up"
         
         self.head_margin = 0
         self.top_arm_margin = 0

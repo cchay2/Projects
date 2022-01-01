@@ -34,6 +34,17 @@ class Player():
         self.color = constant.WHITE
         
         self.skin = None
+        self.place_block = False
+        self.place_block_left = False
+        self.place_block_right = False
+        
+        self.breaking = False
+        self.holding = False
+        self.collect = False # For Breaking Block Fix
+        
+        self.attack = False
+        self.attack_left = False
+        self.attack_right = False
         
         self.dRect = pygame.Rect( self.x, self.y, self.width, self.height ) #Draw
         self.Rect = pygame.Rect( self.x, self.y, self.width, self.height ) #x, y, width, height
@@ -229,11 +240,12 @@ class Player():
         adj = mouse_pos[1] - center_point[1]
         opp = mouse_pos[0] - center_point[0]
         try:
-            angle = round( math.atan(adj/opp)*100 )
+            angle = round( math.atan(adj/opp)*100 )*0.5
         except:
             angle = 0
             
-        if -60 < angle < 60:
+        angle_limit = 70
+        if -angle_limit < angle < angle_limit:
             if angle < 0:
                 self.skin.head_margin = -(-angle//5)
             else:
@@ -241,7 +253,8 @@ class Player():
             
             
             self.skin.setHeadAngle( -angle )
-            
+        
+        #print( angle )
         
         if mouse_pos[0] - center_point[0] >= 0:
             self.skin.head_right = pygame.transform.rotate( self.skin.head_right_r, self.skin.getHeadAngle() )
@@ -251,20 +264,100 @@ class Player():
             self.direction = "left"
     
     
+    def placeBlockAnimation( self ):
+        #if self.is_walking:
+            #self.skin.resetTopArmAngle()
+        
+        if self.place_block == True:
+            print(self.direction)
+            if self.direction == "right":
+                self.place_block_right = True
+                if self.skin.getTopArmAngle() < 0:
+                    self.skin.resetTopArmAngle()
+                else:
+                    if 0 <= self.skin.getTopArmAngle() <= 50:
+                        self.skin.changeTopArmAngle( 10 )
+                        self.skin.top_arm_margin += 2
+                        self.skin.top_arm = pygame.transform.rotate( self.skin.top_arm_r, self.skin.getTopArmAngle() )
+                        
+                    if self.skin.getTopArmAngle() > 50:
+                        self.place_block = False
+                        self.place_block_right = False
+                        self.skin.top_arm_margin = 4
+                      
+            if self.direction == "left":
+                self.place_block_left = True
+                if self.skin.getBotArmAngle() > 0:
+                    self.skin.resetBotArmAngle()
+                else:
+                    #print( self.skin.getBotArmAngle() )
+                    if 0 >= self.skin.getBotArmAngle() >= -50:
+                        self.skin.changeBotArmAngle( -10 )
+                        self.skin.bot_arm_margin -= 6
+                        self.skin.bot_arm = pygame.transform.rotate( self.skin.bot_arm_r, self.skin.getBotArmAngle() )
+                        
+                    if self.skin.getBotArmAngle() < -50:
+                        self.place_block = False
+                        self.place_block_left = False
+                        self.skin.bot_arm_margin = -16
+                        self.skin.bot_arm_rect.x = self.x+self.scroll[0] + 4
+    
+    
+    def attackAnimation( self ):
+        if self.attack == True:
+            #print(self.direction)
+            if self.direction == "right":
+                self.attack_right = True
+                if self.skin.getTopArmAngle() < 0:
+                    self.skin.resetTopArmAngle()
+                else:
+                    if 0 <= self.skin.getTopArmAngle() <= 50:
+                        self.skin.changeTopArmAngle( 10 )
+                        self.skin.top_arm_margin += 2
+                        self.skin.top_arm = pygame.transform.rotate( self.skin.top_arm_r, self.skin.getTopArmAngle() )
+                        
+                    if self.skin.getTopArmAngle() > 50:
+                        self.attack = False
+                        self.attack_right = False
+                        self.skin.top_arm_margin = 4
+                      
+            if self.direction == "left":
+                self.attack_left = True
+                if self.skin.getBotArmAngle() > 0:
+                    self.skin.resetBotArmAngle()
+                else:
+                    #print( self.skin.getBotArmAngle() )
+                    if 0 >= self.skin.getBotArmAngle() >= -50:
+                        self.skin.changeBotArmAngle( -10 )
+                        self.skin.bot_arm_margin -= 6
+                        self.skin.bot_arm = pygame.transform.rotate( self.skin.bot_arm_r, self.skin.getBotArmAngle() )
+                        
+                    if self.skin.getBotArmAngle() < -50:
+                        self.attack = False
+                        self.attack_left = False
+                        self.skin.bot_arm_margin = -16
+                        self.skin.bot_arm_rect.x = self.x+self.scroll[0] + 4
+            
+    
+    
     def walkAnimation( self ):
-        self.topArmWalkAnimation()
-        self.botArmWalkAnimation()
+        if not self.place_block_right and not self.attack_right:
+            self.topArmWalkAnimation()
+        
+        if not self.place_block_left and not self.attack_left:
+            self.botArmWalkAnimation()
+            
         self.topLegWalkAnimation()
         self.botLegWalkAnimation()
+        
     
     def topArmWalkAnimation( self ):
-        if self.skin.swing_arm == "up":
+        if self.skin.swing_leg == "up":
             if self.skin.getTopArmAngle() <= 50:
                 self.skin.changeTopArmAngle( 10 )
                 self.skin.top_arm_margin += 2
                 self.skin.top_arm = pygame.transform.rotate( self.skin.top_arm_r, self.skin.getTopArmAngle() )
             else:
-                self.skin.swing_arm = "down"
                 self.skin.top_arm_margin = 4
         else:
             if self.skin.getTopArmAngle() >= -50:
@@ -272,12 +365,11 @@ class Player():
                 self.skin.top_arm_margin -= 2
                 self.skin.top_arm = pygame.transform.rotate( self.skin.top_arm_r, self.skin.getTopArmAngle() )
             else:
-                self.skin.swing_arm = "up"
                 self.skin.top_arm_margin = -16
                 
     
     def botArmWalkAnimation( self ):
-        if self.skin.swing_arm == "down":
+        if self.skin.swing_leg == "down":
             if self.skin.getBotArmAngle() <= 50:
                 self.skin.changeBotArmAngle( 10 )
                 self.skin.bot_arm_margin += 2
@@ -294,12 +386,13 @@ class Player():
                 
     
     def botLegWalkAnimation( self ):
-        if self.skin.swing_arm == "up":
+        if self.skin.swing_leg == "up":
             if self.skin.getBotLegAngle() <= 50:
                 self.skin.changeBotLegAngle( 10 )
                 self.skin.bot_leg_margin += 2
                 self.skin.bot_leg = pygame.transform.rotate( self.skin.bot_leg_r, self.skin.getBotLegAngle() )
             else:
+                self.skin.swing_leg = "down"
                 self.skin.bot_leg_margin = 4
         else:
             if self.skin.getBotLegAngle() >= -50:
@@ -307,11 +400,12 @@ class Player():
                 self.skin.bot_leg_margin -= 2
                 self.skin.bot_leg = pygame.transform.rotate( self.skin.bot_leg_r, self.skin.getBotLegAngle() )
             else:
+                self.skin.swing_leg = "up"
                 self.skin.bot_leg_margin = -16
                 
     
     def topLegWalkAnimation( self ):
-        if self.skin.swing_arm == "down":
+        if self.skin.swing_leg == "down":
             if self.skin.getTopLegAngle() <= 50:
                 self.skin.changeTopLegAngle( 10 )
                 self.skin.top_leg_margin += 2
@@ -374,13 +468,23 @@ class Player():
         self.updateSkinRects( x, y )
         
         
+        
+        if self.attack:
+            self.attackAnimation()
+        
+        elif self.place_block:
+            self.placeBlockAnimation()
+        
         if self.is_walking:
             self.walkAnimation()
-        else:
+            
+        if not self.is_walking and not self.place_block and not self.attack:
             self.resetAnimation()
             
             
-        self.headAnimation( mouse_pos )    
+        self.headAnimation( mouse_pos )
+        
+        #self.updateSkinRects( x, y )   
         
         surface.blit( self.skin.getBotArm(), self.skin.getBotArmRect() )
         surface.blit( self.skin.getBotLeg(), self.skin.getBotLegRect() )
