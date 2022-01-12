@@ -1,50 +1,27 @@
-# Kingdom-Projects
-All my side projects and other programs worth uploading will go here
+# Disclaimer: This game has no affiliation with Mojang or the Official Minecraft. This is simply a fan-made clone created with the intent to learn pygame.
 
 
-Stable --> ALPHA
-GAME IS IN ALPHA!!!
+# License
+    Copyright (C) 2022  Christopher Chay
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    More information can also be found under LICENSE.md
 
 
+    License Copyright: Copyright © 2007 Free Software Foundation, Inc.
+	License License: "Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed." (www.gnu.org/licenses/gpl-3.0.en.html).
+	License Contact: Free Software Foundation (fsf.org).
 
-# Changelog for Minecraft 2D
-
-## v.0.6.0 Player Animations
-+ Added Player Skin framework so user can select any skin they want
-+ Added Player walk animation --> optimize later
-+ Added Player Head Animation
-+ Added more tile images
-+ Overhauled old inventory block images
-+ Added more leaves to make trees pretty
-
-## v.0.5.1
-+ Fixed Tree Spawn so it doesn't spawn on Player
-+ Fixed Tree Spawns so we don't have 50 times the trees on map
-
-## v.0.5 Crafting System Part 1
-+ Added Crafting System
-+ Added 1 Recipe: Wood Planks
-
-## v.0.4 Inventory System
-+ Added Inventory System
-
-## v.0.3.3
-+ Temp Bug Fix for NYI throw out of inventory mechanism
-
-## v.0.3.2
-+ Right click Drag and Drop (Half stack)
-
-## v.0.3.1
-+ Added new Dirt Block graphics
-
-## v.0.3
-+ Added a Fully Funtional Hotbar System with scrolling and corresponding inventory addition
-+ Left click Drag and Drop
-
-## v.0.2
-+ Version 0.1 not logged
-+ Movement and jumping
-+ Collision
-+ Set world generation
-+ Breaking blocks
-+ Placing blocks
+	SPDX short identifier: GPL-3.0-only
